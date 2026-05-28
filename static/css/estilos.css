@@ -1,0 +1,104 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #dbeafe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Contenedor principal */
+.contenedor-chat {
+    width: 420px;
+    height: 650px;
+    background: white;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Barra superior */
+.barra-superior {
+    background: #229ed9;
+    color: white;
+    padding: 15px;
+}
+
+.barra-superior h2 {
+    margin: 0;
+}
+
+.barra-superior p {
+    margin: 5px 0 0;
+    font-size: 13px;
+}
+
+/* Zona de mensajes */
+.zona-mensajes {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #eef6fb;
+}
+
+/* Mensajes */
+.mensaje {
+    max-width: 75%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.mensaje.usuario {
+    background: #dcf8c6;
+    margin-left: auto;
+}
+
+.mensaje.servidor {
+    background: white;
+    margin-right: auto;
+}
+
+.mensaje.sistema {
+    background: #cfe8ff;
+    margin: 0 auto 10px;
+    text-align: center;
+}
+
+/* Barra de envío */
+.barra-envio {
+    display: flex;
+    padding: 10px;
+    background: #f1f5f9;
+    border-top: 1px solid #ddd;
+}
+
+.barra-envio input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+}
+
+.barra-envio button {
+    margin-left: 8px;
+    padding: 10px 15px;
+    border: none;
+    background: #229ed9;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.barra-envio button:hover {
+    background: #1b8ec2;
+}

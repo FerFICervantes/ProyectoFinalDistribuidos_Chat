@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Proyecto Final</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+<body>
+
+    <div class="contenedor-chat">
+        <div class="barra-superior">
+            <h2>Chatroom FerAlone</h2>
+            <p>Cliente Python + Flask</p>
+        </div>
+
+        <div id="mensajes" class="zona-mensajes">
+            <div class="mensaje sistema">
+                Bienvenido al chat.
+            </div>
+        </div>
+
+        <div class="barra-envio">
+            <input type="text" id="entradaMensaje" placeholder="Escribe un mensaje...">
+            <button onclick="enviarMensaje()">Enviar</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
