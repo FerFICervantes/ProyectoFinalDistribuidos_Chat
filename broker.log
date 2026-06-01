@@ -1,0 +1,15 @@
+2026-06-01 16:53:43,535 [INFO] ==================================================
+2026-06-01 16:53:43,536 [INFO]   BROKER iniciado en 0.0.0.0:5000
+2026-06-01 16:53:43,576 [INFO]   IP local: 192.168.1.97
+2026-06-01 16:53:43,576 [INFO]   Archivos temporales en: C:\Users\alons\Desktop\Sistemas Distribuidos\Proyecto\Servidor_broker\archivos_temporales
+2026-06-01 16:53:43,576 [INFO] ==================================================
+2026-06-01 16:53:59,393 [INFO] Conexión entrante desde ('192.168.1.97', 63232)
+2026-06-01 16:53:59,397 [INFO] [BROKER] Recibe de 'Alonso' -> {'Alonso': 1, 'BROKER': 1}
+2026-06-01 16:53:59,397 [INFO] PKT [CONNECT] Alonso→BROKER lam=1 vec={'Alonso': 1} | Alonso
+2026-06-01 16:53:59,397 [INFO] Usuario 'Alonso' conectado. Activos: ['Alonso']
+2026-06-01 16:53:59,398 [INFO] [BROKER] Envía '["Alonso"]' → vector={'Alonso': 1, 'BROKER': 2}
+2026-06-01 16:53:59,398 [INFO] [BROKER] Envía '[]' → vector={'Alonso': 1, 'BROKER': 3}
+2026-06-01 16:54:17,791 [ERROR] Error con ('192.168.1.97', 63232): [WinError 10054] Se ha forzado la interrupción de una conexión existente por el host remoto
+2026-06-01 16:54:17,791 [INFO] Usuario 'Alonso' desconectado. Activos: []
+2026-06-01 16:54:17,791 [INFO] [BROKER] Envía '[]' → vector={'Alonso': 1, 'BROKER': 4}
+2026-06-01 16:54:17,791 [INFO] Conexión cerrada: ('192.168.1.97', 63232)
