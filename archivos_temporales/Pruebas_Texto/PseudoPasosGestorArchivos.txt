@@ -1,0 +1,7 @@
+1.-Si no existe la carpeta principal crearla con el nombre generacion_inventario_fechaHoy
+	Validaciones previas a la creación:
+		-Validar si existe la carpeta
+		-Validar que el Excel existe, que se generó correctamente (Pasos previos ya se creo)
+2.-Crear subcarpeta o subcarpetas dentro de la principal dependiendo del nombre de Area
+3.-Dentro de las subcarpetas crear los archivos txt por cada año 
+4.-Se tiene que poder copiar y pegar correctamente en el excel
