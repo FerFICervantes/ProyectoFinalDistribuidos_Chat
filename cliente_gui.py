@@ -20,7 +20,7 @@ from datetime import datetime
 # ──────────────────────────────────────────────
 #  CONFIGURACIÓN  (editar IP del broker)
 # ──────────────────────────────────────────────
-BROKER_HOST = "127.0.0.1"   # ← Cambia a la IP del servidor en tu red
+BROKER_HOST = "127.0.0.1"   # Es necesario cambiarlo por la IP local del broker que en este caso es la de Alonso (C#)
 BROKER_PORT = 5000
 
 
@@ -171,7 +171,7 @@ class ConexionBroker:
 
 
 # ──────────────────────────────────────────────
-#  GUI
+#  Interfaz gráfica GUI
 # ──────────────────────────────────────────────
 COLORES = {
     "bg":        "#0d1117",
