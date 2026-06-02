@@ -1,45 +1,43 @@
-function agregarMensaje(texto, tipo) {
-    const zonaMensajes = document.getElementById("mensajes");
+const input = document.querySelector('.input-field');
+const sendBtn = document.querySelector('.send-btn');
+const messages = document.querySelector('.messages');
+const typingRow = document.querySelector('.typing-row');
 
-    const nuevoMensaje = document.createElement("div");
-    nuevoMensaje.classList.add("mensaje");
-    nuevoMensaje.classList.add(tipo);
-    nuevoMensaje.textContent = texto;
+function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
 
-    zonaMensajes.appendChild(nuevoMensaje);
-    zonaMensajes.scrollTop = zonaMensajes.scrollHeight;
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+  const row = document.createElement('div');
+  row.className = 'bubble-row sent';
+  row.innerHTML = `
+    <div class="bubble sent">
+      <div class="bubble-text">${escapeHtml(text)}</div>
+      <div class="bubble-meta">
+        <span class="bubble-time">${time}</span>
+        <i class="ti ti-check check-icon" aria-hidden="true"></i>
+      </div>
+    </div>
+  `;
+
+  messages.insertBefore(row, typingRow);
+  input.value = '';
+  messages.scrollTop = messages.scrollHeight;
 }
 
-function enviarMensaje() {
-    const entrada = document.getElementById("entradaMensaje");
-    const mensaje = entrada.value.trim();
-
-    if (mensaje === "") {
-        return;
-    }
-
-    agregarMensaje(mensaje, "usuario");
-    entrada.value = "";
-
-    fetch("/enviar", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ mensaje: mensaje })
-    })
-    .then(response => response.json())
-    .then(data => {
-        agregarMensaje(data.respuesta, "servidor");
-    })
-    .catch(error => {
-        agregarMensaje("Error al conectar con Flask.", "servidor");
-        console.error(error);
-    });
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-document.getElementById("entradaMensaje").addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        enviarMensaje();
-    }
+sendBtn.addEventListener('click', sendMessage);
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 });
+
+messages.scrollTop = messages.scrollHeight;
