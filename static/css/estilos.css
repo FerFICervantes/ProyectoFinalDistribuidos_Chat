@@ -427,3 +427,87 @@ body {
   height: 36px;
   font-size: 14px;
 }
+
+.login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(28, 40, 64, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .login-card {
+      background: #1e2d40;
+      border-radius: 16px;
+      padding: 32px;
+      width: 320px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    
+    .login-card h2 {
+      color: #e8f4fd;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    
+    .login-card input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background: #2b3f57;
+      border: 1px solid #243447;
+      border-radius: 8px;
+      color: #e8f4fd;
+      font-size: 14px;
+    }
+    
+    .login-card button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      background: #2d8dc9;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .login-card button:hover {
+      background: #3aa0dc;
+    }
+    
+    .toggle-mode {
+      text-align: center;
+      margin-top: 16px;
+      color: #7fb3d3;
+      cursor: pointer;
+    }
+    
+    .error-msg {
+      color: #ef4444;
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    
+    .chat-main.hidden {
+      display: none;
+    }
+    
+    .sidebar.hidden {
+      display: none;
+    }
+    
+    .notification-badge {
+      background: #2d8dc9;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 10px;
+      margin-left: 8px;
+    }

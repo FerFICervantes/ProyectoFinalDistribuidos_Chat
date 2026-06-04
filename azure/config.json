@@ -1,0 +1,13 @@
+{
+    "appService": {
+        "name": "chatlamport",
+        "resourceGroup": "Distribuidos",
+        "location": "westus2",
+        "sku": "B1",
+        "linuxFxVersion": "PYTHON:3.9",
+        "appSettings": {
+            "WEBSITES_PORT": "8000",
+            "SCM_DO_BUILD_DURING_DEPLOYMENT": "true"
+        }
+    }
+}

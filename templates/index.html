@@ -3,140 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telegram Chat</title>
+  <title>ChatLamport - Sistema Distribuido</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <link rel="stylesheet" href="../static/css/estilos.css" />
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
 
-  <div class="app">
-
-    <!-- ===================== SIDEBAR ===================== -->
-    <aside class="sidebar">
-
-      <div class="sidebar-header">
-        <div class="sidebar-user">
-          <div class="avatar avatar-purple avatar-lg">J</div>
-          <span class="sidebar-user-name">Jesús Alonso</span>
-        </div>
-        <i class="ti ti-menu-2 sidebar-icon" aria-hidden="true"></i>
-      </div>
-
-      <div class="search-bar">
-        <div class="search-inner">
-          <i class="ti ti-search search-icon" aria-hidden="true"></i>
-          <span class="search-placeholder">Buscar</span>
-        </div>
-      </div>
-
-      <div class="chat-item">
-        <div class="avatar avatar-blue">M</div>
-        <div class="chat-item-info">
-          <div class="chat-item-top">
-            <span class="chat-item-name">Maria Fernanda</span>
-            <span class="chat-item-time">10:38</span>
-          </div>
-          <div class="chat-item-preview">
-            <i class="ti ti-checks check-icon" aria-hidden="true"></i>
-            <span class="chat-item-preview-text">¡Ya casi terminamos el proyecto!</span>
-          </div>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- ===================== MAIN CHAT ===================== -->
-    <main class="chat-main">
-
-      <!-- Header -->
-      <div class="chat-header">
-        <div class="avatar avatar-blue">M</div>
-        <div class="chat-header-info">
-          <div class="chat-header-name">Selecciona un chat</div>
-          <div class="chat-header-status">en línea</div>
-        </div>
-        <div class="chat-header-actions">
-          <i class="ti ti-search" aria-hidden="true"></i>
-          <i class="ti ti-phone" aria-hidden="true"></i>
-          <i class="ti ti-dots-vertical" aria-hidden="true"></i>
-        </div>
-      </div>
-
-      <!-- Messages -->
-      <div class="messages">
-
-        <div class="date-separator">
-          <span>Hoy</span>
-        </div>
-
-        <!-- Received 1 -->
-        <div class="bubble-row received">
-          <div class="bubble received">
-            <div class="bubble-sender">Maria Fernanda</div>
-            <div class="bubble-text">¡Hola! ¿Ya empezaste con la implementación del servidor TCP? 😊</div>
-            <div class="bubble-meta">
-              <span class="bubble-time">10:32</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sent 1 -->
-        <div class="bubble-row sent">
-          <div class="bubble sent">
-            <div class="bubble-text">Sí, ya tengo el TcpListener básico, ahora voy con los hilos por cliente</div>
-            <div class="bubble-meta">
-              <span class="bubble-time">10:34</span>
-              <i class="ti ti-checks check-icon" aria-hidden="true"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- Received 2 -->
-        <div class="bubble-row received">
-          <div class="bubble received">
-            <div class="bubble-sender">Maria Fernanda</div>
-            <div class="bubble-text">Perfecto (: No olvides que también necesitamos el algoritmo de Lamport para ordenar los mensajes. ¿Empezamos con eso después del servidor base?</div>
-            <div class="bubble-meta">
-              <span class="bubble-time">10:36</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sent 2 -->
-        <div class="bubble-row sent">
-          <div class="bubble sent">
-            <div class="bubble-text">Claro, primero dejamos el servidor funcional y luego implementamos Lamport. ¡Ya casi terminamos el proyecto! 🚀</div>
-            <div class="bubble-meta">
-              <span class="bubble-time">10:38</span>
-              <i class="ti ti-checks check-icon" aria-hidden="true"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- Typing indicator -->
-        <div class="typing-row">
-          <div class="typing-bubble">
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Input area -->
-      <div class="chat-input-area">
-        <i class="ti ti-paperclip input-icon" aria-hidden="true"></i>
-        <input class="input-field" type="text" placeholder="Escribe un mensaje..." />
-        <button class="send-btn" aria-label="Enviar mensaje">
-          <i class="ti ti-send" aria-hidden="true"></i>
-        </button>
-      </div>
-
-    </main>
-
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <h2>💬 ChatLamport</h2>
+    <input type="text" id="username" placeholder="Usuario" autocomplete="off" />
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button id="btnLogin">Iniciar Sesión</button>
+    <div class="toggle-mode" id="toggleMode">
+      ¿No tienes cuenta? Regístrate
+    </div>
+    <div id="errorMsg" class="error-msg"></div>
   </div>
+</div>
 
-  <script src="../static/js/chat.js"></script>
+<div class="app">
+  <aside class="sidebar" id="sidebar" style="display: none;">
+    <div class="sidebar-header">
+      <div class="sidebar-user">
+        <div class="avatar avatar-purple avatar-lg" id="userAvatar">U</div>
+        <span class="sidebar-user-name" id="currentUser">Usuario</span>
+      </div>
+      <i class="ti ti-logout sidebar-icon" id="btnLogout" aria-hidden="true"></i>
+    </div>
+
+    <div class="search-bar">
+      <div class="search-inner">
+        <i class="ti ti-search search-icon" aria-hidden="true"></i>
+        <span class="search-placeholder">Buscar contacto</span>
+      </div>
+    </div>
+
+    <div id="usersList">
+      <!-- Lista de usuarios se llena dinámicamente -->
+    </div>
+  </aside>
+
+  <main class="chat-main" id="chatMain" style="display: none;">
+    <div class="chat-header">
+      <div class="avatar avatar-blue" id="chatAvatar">?</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chatWith">Selecciona un chat</div>
+        <div class="chat-header-status" id="chatStatus">Selecciona un usuario</div>
+      </div>
+      <div class="chat-header-actions">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <i class="ti ti-phone" aria-hidden="true"></i>
+        <i class="ti ti-dots-vertical" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="date-separator">
+        <span>Hoy</span>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <i class="ti ti-paperclip input-icon" aria-hidden="true"></i>
+      <input class="input-field" id="messageInput" type="text" placeholder="Escribe un mensaje..." disabled />
+      <button class="send-btn" id="sendBtn" aria-label="Enviar mensaje" disabled>
+        <i class="ti ti-send" aria-hidden="true"></i>
+      </button>
+    </div>
+  </main>
+</div>
+
+<script src="../static/js/chat.js"></script>
 </body>
 </html>
