@@ -285,18 +285,41 @@ function addFileToChat(sender, filename, data, fileType, time, isSent) {
   const safeType = /^[\w\-\/\.+]+$/.test(fileType) ? fileType : 'application/octet-stream';
   const safeName = escapeHtml(filename);
 
+  const dataSrc = `data:${safeType};base64,${data}`;
   let fileContent;
   if (safeType.startsWith('image/')) {
-    fileContent = `<img src="data:${safeType};base64,${data}" alt="${safeName}"
-      style="max-width:220px;max-height:200px;border-radius:8px;cursor:pointer;display:block;"
-      onclick="window.open(this.src)">
+    fileContent = `
+      <img src="${dataSrc}" alt="${safeName}"
+        style="max-width:220px;max-height:200px;border-radius:8px;cursor:pointer;display:block;"
+        onclick="window.open(this.src)">
       <div style="font-size:11px;color:#5f7d96;margin-top:4px;">${safeName}</div>`;
+  } else if (safeType.startsWith('video/')) {
+    fileContent = `
+      <video controls style="max-width:280px;border-radius:8px;display:block;">
+        <source src="${dataSrc}" type="${safeType}">
+      </video>
+      <div style="font-size:11px;color:#5f7d96;margin-top:4px;">${safeName}</div>`;
+  } else if (safeType.startsWith('audio/')) {
+    fileContent = `
+      <audio controls style="max-width:260px;display:block;margin-top:4px;">
+        <source src="${dataSrc}" type="${safeType}">
+      </audio>
+      <div style="font-size:11px;color:#5f7d96;margin-top:4px;">${safeName}</div>`;
+  } else if (safeType === 'application/pdf') {
+    fileContent = `
+      <embed src="${dataSrc}" type="application/pdf"
+        style="width:260px;height:200px;border-radius:8px;display:block;">
+      <a href="${dataSrc}" download="${safeName}"
+        style="display:inline-flex;align-items:center;gap:4px;color:#2d8dc9;text-decoration:none;font-size:12px;margin-top:4px;">
+        <i class="ti ti-file-download"></i> Descargar PDF
+      </a>`;
   } else {
-    fileContent = `<a href="data:${safeType};base64,${data}" download="${safeName}"
-      style="display:flex;align-items:center;gap:6px;color:#2d8dc9;text-decoration:none;">
-      <i class="ti ti-file-download" style="font-size:20px;"></i>
-      <span style="font-size:13px;">${safeName}</span>
-    </a>`;
+    fileContent = `
+      <a href="${dataSrc}" download="${safeName}"
+        style="display:flex;align-items:center;gap:6px;color:#2d8dc9;text-decoration:none;">
+        <i class="ti ti-file-download" style="font-size:20px;"></i>
+        <span style="font-size:13px;">${safeName}</span>
+      </a>`;
   }
 
   bubbleRow.innerHTML = `
@@ -374,8 +397,8 @@ fileInput.addEventListener('change', () => {
   const file = fileInput.files[0];
   if (!file || !currentChat) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert('El archivo es demasiado grande. Máximo 5 MB.');
+  if (file.size > 10 * 1024 * 1024) {
+    alert('El archivo es demasiado grande. Máximo 10 MB.');
     fileInput.value = '';
     return;
   }
