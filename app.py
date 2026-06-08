@@ -19,7 +19,8 @@ async_mode = 'eventlet' if 'WEBSITE_HOSTNAME' in os.environ else 'threading'
 socketio = SocketIO(app, cors_allowed_origins="*",
                     async_mode=async_mode,
                     ping_timeout=60,
-                    ping_interval=25)
+                    ping_interval=25,
+                    max_http_buffer_size=10 * 1024 * 1024)
 
 # Configuración de base de datos
 DATABASE = '/home/site/wwwroot/database/chat.db' if 'WEBSITE_HOSTNAME' in os.environ else 'database/chat.db'
@@ -54,15 +55,23 @@ def init_db():
         leido INTEGER DEFAULT 0
     )''')
     
-    # Tabla para archivos (opcional)
+    # Tabla para archivos
     c.execute('''CREATE TABLE IF NOT EXISTS archivos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         from_user TEXT NOT NULL,
         to_user TEXT NOT NULL,
         nombre TEXT NOT NULL,
+        tipo TEXT DEFAULT 'application/octet-stream',
         datos TEXT NOT NULL,
         timestamp REAL DEFAULT CURRENT_TIMESTAMP
     )''')
+
+    # Migración: agregar columna tipo si la tabla ya existía sin ella
+    try:
+        c.execute("ALTER TABLE archivos ADD COLUMN tipo TEXT DEFAULT 'application/octet-stream'")
+        conn.commit()
+    except Exception:
+        pass  # La columna ya existe
     
     conn.commit()
     conn.close()
@@ -87,6 +96,7 @@ def _signal_handler(*_):
 
 atexit.register(clear_db)
 signal.signal(signal.SIGTERM, _signal_handler)
+signal.signal(signal.SIGINT, _signal_handler)
 
 def get_db():
     """Obtiene conexión a la base de datos"""
@@ -221,6 +231,37 @@ def get_mensajes(destino):
     
     return jsonify({'mensajes': mensajes})
 
+@app.route('/api/archivos/<destino>', methods=['GET'])
+def get_archivos(destino):
+    """Obtiene historial de archivos"""
+    if 'username' not in session:
+        return jsonify({'error': 'No autenticado'}), 401
+
+    origen = session['username']
+    destino = destino.lower()
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT from_user, nombre, tipo, datos, timestamp
+                 FROM archivos
+                 WHERE (from_user = ? AND to_user = ?)
+                    OR (from_user = ? AND to_user = ?)
+                 ORDER BY timestamp ASC''',
+              (origen, destino, destino, origen))
+
+    archivos = []
+    for row in c.fetchall():
+        archivos.append({
+            'from': row[0],
+            'filename': row[1],
+            'file_type': row[2] or 'application/octet-stream',
+            'data': row[3],
+            'time': row[4]
+        })
+    conn.close()
+
+    return jsonify({'archivos': archivos})
+
 @app.route('/api/mensajes/no_leidos', methods=['GET'])
 def get_mensajes_no_leidos():
     """Obtiene mensajes no leídos"""
@@ -309,6 +350,39 @@ def handle_private_message(data):
                 'message': message
             }, room=sid)
             break
+
+@socketio.on('send_file')
+def handle_send_file(data):
+    """Recibe y distribuye un archivo"""
+    if 'username' not in session:
+        return
+
+    from_user = session['username']
+    to_user = data['to'].lower()
+    filename = data.get('filename', 'archivo')
+    file_data = data.get('data', '')
+    file_type = data.get('file_type', 'application/octet-stream')
+
+    if not file_data:
+        return
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''INSERT INTO archivos (from_user, to_user, nombre, tipo, datos, timestamp)
+                 VALUES (?, ?, ?, ?, ?, ?)''',
+              (from_user, to_user, filename, file_type, file_data, datetime.now().timestamp()))
+    conn.commit()
+    conn.close()
+
+    room = f"chat_{min(from_user, to_user)}_{max(from_user, to_user)}"
+    emit('new_file', {
+        'from': from_user,
+        'to': to_user,
+        'filename': filename,
+        'data': file_data,
+        'file_type': file_type,
+        'time': datetime.now().strftime('%H:%M')
+    }, room=room)
 
 if __name__ == '__main__':
     init_db()

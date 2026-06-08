@@ -23,6 +23,10 @@ const chatAvatar = document.getElementById('chatAvatar');
 const messagesDiv = document.getElementById('messages');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
+const paperclipBtn = document.getElementById('paperclipBtn');
+const fileInput = document.getElementById('fileInput');
+
+paperclipBtn.classList.add('disabled');
 
 let isLoginMode = true;
 
@@ -135,8 +139,13 @@ function connectSocket() {
     if (currentChat === data.from || currentChat === data.to) {
       addMessageToChat(data.from, data.content, data.time, data.from === currentUser);
     }
-    // Actualizar contador de mensajes no leídos
     updateUnreadCount();
+  });
+
+  socket.on('new_file', (data) => {
+    if (currentChat === data.from || currentChat === data.to) {
+      addFileToChat(data.from, data.filename, data.data, data.file_type, data.time, data.from === currentUser);
+    }
   });
   
   socket.on('mensaje_recibido', (data) => {
@@ -204,6 +213,7 @@ async function selectChat(username) {
   // Habilitar input
   messageInput.disabled = false;
   sendBtn.disabled = false;
+  paperclipBtn.classList.remove('disabled');
   
   // Unirse a la sala
   const room = `chat_${[currentUser, username].sort().join('_')}`;
@@ -216,19 +226,31 @@ async function selectChat(username) {
 // Cargar historial de mensajes
 async function loadChatHistory(username) {
   try {
-    const response = await fetch(`/api/mensajes/${username}`);
-    const data = await response.json();
-    
-    // Limpiar mensajes existentes (excepto separador de fecha)
+    const [msgResp, fileResp] = await Promise.all([
+      fetch(`/api/mensajes/${username}`),
+      fetch(`/api/archivos/${username}`)
+    ]);
+    const msgData = await msgResp.json();
+    const fileData = await fileResp.json();
+
     const dateSeparator = messagesDiv.querySelector('.date-separator');
     messagesDiv.innerHTML = '';
     if (dateSeparator) messagesDiv.appendChild(dateSeparator.cloneNode(true));
     else messagesDiv.innerHTML = '<div class="date-separator"><span>Historial</span></div>';
-    
-    data.mensajes.forEach(msg => {
-      addMessageToChat(msg.from, msg.content, formatTime(msg.time), msg.from === currentUser);
+
+    const items = [
+      ...msgData.mensajes.map(m => ({ type: 'message', ...m })),
+      ...(fileData.archivos || []).map(f => ({ type: 'file', ...f }))
+    ].sort((a, b) => a.time - b.time);
+
+    items.forEach(item => {
+      if (item.type === 'message') {
+        addMessageToChat(item.from, item.content, formatTime(item.time), item.from === currentUser);
+      } else {
+        addFileToChat(item.from, item.filename, item.data, item.file_type, formatTime(item.time), item.from === currentUser);
+      }
     });
-    
+
     scrollToBottom();
   } catch (err) {
     console.error('Error cargando historial:', err);
@@ -251,6 +273,43 @@ function addMessageToChat(sender, content, time, isSent) {
     </div>
   `;
   
+  messagesDiv.appendChild(bubbleRow);
+  scrollToBottom();
+}
+
+// Agregar archivo al chat
+function addFileToChat(sender, filename, data, fileType, time, isSent) {
+  const bubbleRow = document.createElement('div');
+  bubbleRow.className = `bubble-row ${isSent ? 'sent' : 'received'}`;
+
+  const safeType = /^[\w\-\/\.+]+$/.test(fileType) ? fileType : 'application/octet-stream';
+  const safeName = escapeHtml(filename);
+
+  let fileContent;
+  if (safeType.startsWith('image/')) {
+    fileContent = `<img src="data:${safeType};base64,${data}" alt="${safeName}"
+      style="max-width:220px;max-height:200px;border-radius:8px;cursor:pointer;display:block;"
+      onclick="window.open(this.src)">
+      <div style="font-size:11px;color:#5f7d96;margin-top:4px;">${safeName}</div>`;
+  } else {
+    fileContent = `<a href="data:${safeType};base64,${data}" download="${safeName}"
+      style="display:flex;align-items:center;gap:6px;color:#2d8dc9;text-decoration:none;">
+      <i class="ti ti-file-download" style="font-size:20px;"></i>
+      <span style="font-size:13px;">${safeName}</span>
+    </a>`;
+  }
+
+  bubbleRow.innerHTML = `
+    <div class="bubble ${isSent ? 'sent' : 'received'}">
+      ${!isSent ? `<div class="bubble-sender">${escapeHtml(sender)}</div>` : ''}
+      ${fileContent}
+      <div class="bubble-meta">
+        <span class="bubble-time">${time}</span>
+        ${isSent ? '<i class="ti ti-checks check-icon"></i>' : ''}
+      </div>
+    </div>
+  `;
+
   messagesDiv.appendChild(bubbleRow);
   scrollToBottom();
 }
@@ -304,6 +363,36 @@ function formatTime(timestamp) {
 function scrollToBottom() {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
+
+// Enviar archivo
+paperclipBtn.addEventListener('click', () => {
+  if (!currentChat) return;
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file || !currentChat) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('El archivo es demasiado grande. Máximo 5 MB.');
+    fileInput.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const base64Data = e.target.result.split(',')[1];
+    socket.emit('send_file', {
+      to: currentChat,
+      filename: file.name,
+      data: base64Data,
+      file_type: file.type || 'application/octet-stream'
+    });
+    fileInput.value = '';
+  };
+  reader.readAsDataURL(file);
+});
 
 // Event listeners
 sendBtn.addEventListener('click', sendMessage);

@@ -355,6 +355,11 @@ body {
   color: #e8f4fd;
 }
 
+.input-icon.disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .input-field {
   flex: 1;
   background-color: #1e2d40;
