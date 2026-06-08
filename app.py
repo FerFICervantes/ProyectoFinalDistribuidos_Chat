@@ -6,6 +6,8 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import sqlite3
 import bcrypt
 import os
+import atexit
+import signal
 from datetime import datetime
 import threading
 import secrets
@@ -13,8 +15,9 @@ import secrets
 app = Flask(__name__)
 # Usar variable de entorno en Azure, o generar una aleatoria
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
-socketio = SocketIO(app, cors_allowed_origins="*", 
-                    async_mode='eventlet',
+async_mode = 'eventlet' if 'WEBSITE_HOSTNAME' in os.environ else 'threading'
+socketio = SocketIO(app, cors_allowed_origins="*",
+                    async_mode=async_mode,
                     ping_timeout=60,
                     ping_interval=25)
 
@@ -64,6 +67,26 @@ def init_db():
     conn.commit()
     conn.close()
     print("Base de datos inicializada (:")
+
+def clear_db():
+    """Limpia mensajes y archivos al cerrar el servidor (los usuarios se conservan)"""
+    try:
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        c.execute("DELETE FROM mensajes")
+        c.execute("DELETE FROM archivos")
+        conn.commit()
+        conn.close()
+        print("Mensajes limpiados al cerrar el servidor")
+    except Exception as e:
+        print(f"Error al limpiar mensajes: {e}")
+
+def _signal_handler(*_):
+    clear_db()
+    os._exit(0)
+
+atexit.register(clear_db)
+signal.signal(signal.SIGTERM, _signal_handler)
 
 def get_db():
     """Obtiene conexión a la base de datos"""
@@ -236,7 +259,7 @@ def handle_disconnect():
     if request.sid in usuarios_conectados:
         username = usuarios_conectados[request.sid]
         del usuarios_conectados[request.sid]
-        print(f"❌ {username} desconectado")
+        print(f"X {username} desconectado")
         emit('usuario_desconectado', {'username': username}, broadcast=True)
         emit('usuarios_online', {'usuarios': list(set(usuarios_conectados.values()))}, broadcast=True)
 
@@ -295,6 +318,6 @@ if __name__ == '__main__':
     print("Puerto: 8000")
     print("=" * 50)
     
-    # Para Azure, usar puerto 8000 (o el que asigne)
+    # Usando puerto 8000 al agregarlo dentro del server
     port = int(os.environ.get('PORT', 8000))
     socketio.run(app, host='0.0.0.0', port=port, debug=False)

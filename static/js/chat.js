@@ -269,19 +269,15 @@ function addSystemMessage(message) {
 // Enviar mensaje
 async function sendMessage() {
   if (!currentChat || !messageInput.value.trim()) return;
-  
+
   const message = messageInput.value.trim();
-  const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  
-  // Mostrar localmente
-  addMessageToChat(currentUser, message, time, true);
-  
-  // Enviar al servidor
+
+  // Enviar al servidor (el evento new_message del servidor mostrará el mensaje)
   socket.emit('private_message', {
     to: currentChat,
     message: message
   });
-  
+
   messageInput.value = '';
 }
 
